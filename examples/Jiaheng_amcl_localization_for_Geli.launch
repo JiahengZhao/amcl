@@ -1,0 +1,59 @@
+<!-- -->
+<launch>
+
+ <param name="/use_sim_time" value="true" />
+ <arg name="map_filename" default="/home/zhao/Documents/YDLidar/Jiaheng_home.bag_map.yaml"/>
+ <arg name="bag_filename" default="/home/zhao/Documents/YDLidar/Jiaheng_home_localization.bag"/>
+
+ <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_filename)"/>
+
+<node pkg="amcl" type="amcl" name="amcl" output="screen">
+  <param name="use_map_topic" value="true"/>
+  <param name="gui_publish_rate" value="10.0"/>
+  <param name="min_particles" value="300"/>	<!-- minimum number of particles -->
+  <param name="max_particles" value="500"/>	<!-- maximum number of particles -->
+  <param name="kld_err" value="0.05"/>		<!-- minimum error between true and estimated distribution -->
+  <param name="kld_z" value="0.99"/>	
+  <!-- Odometry property -->	
+  <param name="odom_model_type" value="diff"/>  <!-- another is "diff". If so, alpha5 is not used. omni-->>
+  <param name="odom_alpha1" value="0.1"/>
+  <param name="odom_alpha2" value="0.1"/>
+  <param name="odom_alpha3" value="0.1"/>
+  <param name="odom_alpha4" value="0.1"/>
+  <param name="odom_alpha5" value="0.1"/>
+  <param name="base_frame_id" value="base_footprint"/>
+  <param name="odom_frame_id" value="odom"/>
+  <param name="tf_broadcast" value="true"/> <!--et this to false to prevent amcl from publishing the transform between the global frame and the odometry frame.-->
+  <!-- Laser property -->
+  <param name="laser_min_range" value="0.1"/>
+  <param name="laser_max_range" value="15"/>
+  <param name="laser_max_beams" value="180"/>
+  <param name="laser_z_hit" value="0.95"/>
+  <param name="laser_z_short" value="0.025"/>
+  <param name="laser_z_max" value="0.025"/>
+  <param name="laser_z_rand" value="0.05"/>
+  <param name="laser_sigma_hit" value="0.05"/>
+  <param name="laser_lambda_short" value="0.05"/>
+  <param name="laser_lambda_short" value="0.05"/>
+  <param name="laser_model_type" value="beam"/>  <!--beam; likelihood_field, likelihood_field_prob -->
+  <param name="laser_likelihood_max_dist" value="1.0"/>
+  <!-- Filter property -->
+  <param name="update_min_d" value="0.01"/>	<!-- minimum translational movement to update -->
+  <param name="update_min_a" value="0.0001"/>	<!-- minimum rotational movement to update -->
+  <param name="resample_interval" value="4"/>	<!-- number of filter updates required before resampling -->
+  <param name="transform_tolerance" value="0.1"/><!-- Time with which to post-date the transform that is published, to indicate that this transform is valid into the future.-->
+  <param name="recovery_alpha_slow" value="0.005"/><!--Exponential decay rate for the slow average weight filter, used in deciding when to recover by adding random poses. A good value might be 0.001.-->
+  <param name="recovery_alpha_fast" value="0.13"/><!--Exponential decay rate for the fast average weight filter, used in deciding when to recover by adding random poses. A good value might be 0.1.-->
+  <param name="initial_pose_x" value="0"/> <!--0.5m: 0 0 -0.24; 1m:1.5 0 -0.24; 2m: 4.1 0 2.9-->
+  <param name="initial_pose_y" value="0"/>
+  <param name="initial_pose_a" value="-0.24"/>
+  <param name="initial_cov_xx" value="0.25"/> <!-- 0.5m * 0.5m -->
+  <param name="initial_cov_yy" value="0.25"/> <!-- 0.5m * 0.5m -->
+  <param name="initial_cov_aa" value="0.0685"/> <!-- (pi/12) * (pi/12) -->
+  <param name="save_pose_rate" value="10"/> <!-- Maximum rate to store the last estimated pose and covariance. -->
+</node>
+  <node name="rviz" pkg="rviz" type="rviz" required="true"
+      args="-d $(find amcl)/configuration/jiaheng_localization.rviz" />
+  <node name="playbag" pkg="rosbag" type="play"
+      args="--clock --pause -r 1.5 $(arg bag_filename)" />
+</launch>
